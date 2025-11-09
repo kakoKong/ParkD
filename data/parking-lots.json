@@ -1,0 +1,177 @@
+[
+  {
+    "id": "central-eastville",
+    "name": "Central Eastville",
+    "address": "Central Festival Eastville, Pradit Manutham Rd, Bangkok",
+    "coordinates": { "lat": 13.8063, "lng": 100.6074 },
+    "freeMinutes": 180,
+    "tiers": [
+      { "id": "eastville-tier-1", "fromMinute": 181, "toMinute": 300, "ratePerHour": 30 },
+      { "id": "eastville-tier-2", "fromMinute": 301, "ratePerHour": 50 }
+    ],
+    "discounts": [
+      {
+        "id": "eastville-spend-800",
+        "type": "purchase",
+        "description": "Spend 800 THB in participating stores",
+        "threshold": 800,
+        "additionalFreeMinutes": 240
+      },
+      {
+        "id": "eastville-movie",
+        "type": "validation",
+        "description": "Present movie ticket from SF Cinema",
+        "qualifier": "movie",
+        "additionalFreeMinutes": 240
+      }
+    ],
+    "amenities": ["covered", "ev-charging", "security"],
+    "operator": "Central Pattana",
+    "tags": ["mall", "dining", "cinema"]
+  },
+  {
+    "id": "tesco-lotus-ladprao",
+    "name": "Tesco Lotus Ladprao",
+    "address": "Tesco Lotus, Lat Phrao Rd, Bangkok",
+    "coordinates": { "lat": 13.8165, "lng": 100.6051 },
+    "freeMinutes": 90,
+    "tiers": [
+      { "id": "lotus-tier-1", "fromMinute": 91, "toMinute": 240, "ratePerHour": 20 },
+      { "id": "lotus-tier-2", "fromMinute": 241, "ratePerHour": 40 }
+    ],
+    "discounts": [
+      {
+        "id": "lotus-membership",
+        "type": "membership",
+        "description": "Lotus privilege card holders get +60 minutes",
+        "additionalFreeMinutes": 60
+      }
+    ],
+    "amenities": ["open-air", "security"],
+    "operator": "Lotus Retail",
+    "tags": ["groceries", "budget"]
+  },
+  {
+    "id": "cdc",
+    "name": "Crystal Design Center",
+    "address": "Crystal Design Center, Pradit Manutham Rd, Bangkok",
+    "coordinates": { "lat": 13.8077, "lng": 100.6325 },
+    "freeMinutes": 120,
+    "tiers": [
+      { "id": "cdc-tier-1", "fromMinute": 121, "toMinute": 240, "ratePerHour": 25 },
+      { "id": "cdc-tier-2", "fromMinute": 241, "ratePerHour": 35 }
+    ],
+    "discounts": [
+      {
+        "id": "cdc-dining",
+        "type": "purchase",
+        "description": "Dine-in receipt 500 THB+ adds 120 minutes",
+        "threshold": 500,
+        "additionalFreeMinutes": 120,
+        "qualifier": "dining"
+      }
+    ],
+    "amenities": ["covered", "valet"],
+    "operator": "K.E. Land",
+    "tags": ["lifestyle", "design"],
+    "imageUrl": "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=400&q=80"
+  },
+  {
+    "id": "emsphere",
+    "name": "The Emsphere",
+    "address": "The Emsphere, Sukhumvit Rd, Bangkok",
+    "coordinates": { "lat": 13.7447, "lng": 100.5631 },
+    "freeMinutes": 120,
+    "tiers": [
+      { "id": "emsphere-tier-1", "fromMinute": 121, "toMinute": 300, "ratePerHour": 40 },
+      { "id": "emsphere-tier-2", "fromMinute": 301, "ratePerHour": 60 }
+    ],
+    "discounts": [
+      {
+        "id": "emsphere-spend-1000",
+        "type": "purchase",
+        "description": "Spend 1,000 THB in participating stores for +180 minutes",
+        "threshold": 1000,
+        "additionalFreeMinutes": 180,
+        "qualifier": "dining"
+      }
+    ],
+    "amenities": ["covered", "ev-charging", "valet", "security"],
+    "operator": "The Mall Group",
+    "tags": ["mall", "luxury", "dining"],
+    "imageUrl": "https://images.unsplash.com/photo-1505843513577-22bb7d21e455?auto=format&fit=crop&w=400&q=80"
+  },
+  {
+    "id": "emquartier",
+    "name": "EmQuartier",
+    "address": "EmQuartier, Sukhumvit Rd, Bangkok",
+    "coordinates": { "lat": 13.7316, "lng": 100.569 },
+    "freeMinutes": 120,
+    "tiers": [
+      { "id": "emquartier-tier-1", "fromMinute": 121, "toMinute": 240, "ratePerHour": 40 },
+      { "id": "emquartier-tier-2", "fromMinute": 241, "ratePerHour": 60 }
+    ],
+    "discounts": [
+      {
+        "id": "emquartier-cinema",
+        "type": "validation",
+        "description": "Quartier CineArt ticket gets +180 minutes",
+        "additionalFreeMinutes": 180,
+        "qualifier": "movie"
+      }
+    ],
+    "amenities": ["covered", "ev-charging", "security"],
+    "operator": "The Mall Group",
+    "tags": ["mall", "dining", "cinema"],
+    "imageUrl": "https://images.unsplash.com/photo-1529421308418-eab988ab0f8e?auto=format&fit=crop&w=400&q=80"
+  },
+  {
+    "id": "emporium",
+    "name": "The Emporium",
+    "address": "The Emporium, Sukhumvit Rd, Bangkok",
+    "coordinates": { "lat": 13.7306, "lng": 100.568 },
+    "freeMinutes": 120,
+    "tiers": [
+      { "id": "emporium-tier-1", "fromMinute": 121, "toMinute": 240, "ratePerHour": 35 },
+      { "id": "emporium-tier-2", "fromMinute": 241, "ratePerHour": 55 }
+    ],
+    "discounts": [
+      {
+        "id": "emporium-membership",
+        "type": "membership",
+        "description": "M Card members get +120 minutes",
+        "additionalFreeMinutes": 120,
+        "qualifier": "membership"
+      }
+    ],
+    "amenities": ["covered", "valet", "security"],
+    "operator": "The Mall Group",
+    "tags": ["mall", "luxury"],
+    "imageUrl": "https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=400&q=80"
+  },
+  {
+    "id": "k-village",
+    "name": "K Village",
+    "address": "K Village, Sukhumvit Rd, Bangkok",
+    "coordinates": { "lat": 13.7224, "lng": 100.5716 },
+    "freeMinutes": 180,
+    "tiers": [
+      { "id": "kvillage-tier-1", "fromMinute": 181, "toMinute": 300, "ratePerHour": 30 },
+      { "id": "kvillage-tier-2", "fromMinute": 301, "ratePerHour": 45 }
+    ],
+    "discounts": [
+      {
+        "id": "kvillage-dining",
+        "type": "purchase",
+        "description": "Dining receipt 600 THB+ adds 180 minutes",
+        "threshold": 600,
+        "additionalFreeMinutes": 180,
+        "qualifier": "dining"
+      }
+    ],
+    "amenities": ["covered", "open-air", "pet-friendly"],
+    "operator": "K Village Co., Ltd.",
+    "tags": ["lifestyle", "pet-friendly", "dining"],
+    "imageUrl": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=400&q=80"
+  }
+]
