@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import type { KeyboardEvent } from "react";
 
 import { calculatePricing } from "@/lib/pricing";
 import type { DiscountQualifier, ParkingLot, PricingBreakdown } from "@/types/parking";
@@ -36,7 +37,7 @@ export function SelectedLotDetails({
   variant = "default",
   onOpenDetail,
   language = "en",
-  collapsed = false
+  collapsed: _collapsed = false
 }: SelectedLotDetailsProps) {
   const isThai = language === "th";
 
@@ -159,7 +160,7 @@ export function SelectedLotDetails({
       : undefined;
 
     const handleContainerKeyDown = onOpenDetail
-      ? (event: React.KeyboardEvent<HTMLDivElement>) => {
+      ? (event: KeyboardEvent<HTMLDivElement>) => {
           if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
             onOpenDetail();
@@ -167,10 +168,20 @@ export function SelectedLotDetails({
         }
       : undefined;
 
+    const priceLabel = displayPricing
+      ? displayPricing.totalCost <= 0
+        ? isThai
+          ? "ฟรี"
+          : "Free"
+        : `${displayPricing.totalCost.toFixed(0)} THB`
+      : isThai
+      ? "กำลังคำนวณ…"
+      : "Updating…";
+
     return (
       <div
         className={[
-          "flex flex-col gap-4 rounded-2xl border border-slate-800/70 bg-slate-950/75 px-4 py-5 text-xs text-slate-100 shadow-lg shadow-slate-950/50 transition",
+          "flex items-center justify-between gap-3 rounded-2xl border border-slate-800/70 bg-slate-950/75 px-4 py-4 text-xs text-slate-100 shadow-lg shadow-slate-950/50 transition",
           onOpenDetail ? "cursor-pointer hover:border-slate-600 hover:bg-slate-900/80" : ""
         ].join(" ")}
         onClick={handleContainerClick}
@@ -179,75 +190,24 @@ export function SelectedLotDetails({
         tabIndex={onOpenDetail ? 0 : undefined}
         aria-label={onOpenDetail ? (isThai ? "ดูรายละเอียดที่จอดรถ" : "View parking details") : undefined}
       >
-        <div className="flex items-start justify-between gap-2">
-          <div className="space-y-1">
-            <h3 className="text-sm font-semibold text-slate-100">{lot.name}</h3>
-          {!collapsed ? <p className="text-[11px] text-slate-400">{lot.address}</p> : null}
-          </div>
-          <div className="flex flex-col items-end gap-1">
-            {displayPricing ? (
-              <span className="text-sm font-semibold text-sky-200">
-                {displayPricing.totalCost <= 0
-                  ? isThai
-                    ? "ฟรี"
-                    : "Free"
-                  : `${displayPricing.totalCost.toFixed(0)} THB`}
-              </span>
-            ) : (
-              <span className="text-[11px] text-slate-500">
-                {isThai ? "กำลังคำนวณ" : "Awaiting estimate"}
-              </span>
-            )}
-          </div>
+        <div className="flex min-w-0 flex-col">
+          <h3 className="truncate text-sm font-semibold text-slate-100">{lot.name}</h3>
         </div>
-
-        {!collapsed ? (
-          <>
-            <div className="flex items-center justify-between rounded-xl border border-slate-800/70 bg-slate-950/70 px-3 py-2 text-[11px] text-slate-300">
-              <span>{isThai ? "เวลาจอดฟรี" : "Free allowance"}</span>
-              <span className="font-semibold text-slate-100">
-                {formatMinutes(resolvedFreeMinutes, language)}
-              </span>
-            </div>
-
-            {displayPricing ? (
-              <div className="flex items-center justify-between rounded-xl border border-slate-800/70 bg-slate-950/70 px-3 py-2 text-[11px] text-slate-300">
-                <span>{isThai ? "หลังเวลาฟรี" : "After free time"}</span>
-                <span className="font-semibold text-slate-100">
-                  {displayPricing.hourlyRateAfterFree.toFixed(0)} {isThai ? "บาท/ชม." : "THB/hr"}
-                </span>
-              </div>
-            ) : null}
-
-            {lot.discounts.length ? (
-              <div className="flex flex-wrap gap-1.5">
-                {lot.discounts.slice(0, 2).map((discount) => (
-                  <span
-                    key={discount.id}
-                    className="rounded-full bg-slate-900/70 px-3 py-1 text-[10px] text-slate-300"
-                  >
-                    {isThai
-                      ? `+${formatMinutes(discount.additionalFreeMinutes, language)} พร้อม ${discount.type}`
-                      : `+${formatMinutes(discount.additionalFreeMinutes, language)} with ${discount.type}`}
-                  </span>
-                ))}
-                {lot.discounts.length > 2 ? (
-                  <span className="rounded-full bg-slate-900/70 px-3 py-1 text-[10px] text-slate-500">
-                    {isThai
-                      ? `+${lot.discounts.length - 2} เพิ่มเติม`
-                      : `+${lot.discounts.length - 2} more`}
-                  </span>
-                ) : null}
-              </div>
-            ) : null}
-
-            {onOpenDetail ? (
-              <div className="mt-1 text-center text-[10px] uppercase tracking-[0.2em] text-slate-500">
-                {isThai ? "แตะเพื่อดูรายละเอียดทั้งหมด" : "Tap for full details"}
-              </div>
-            ) : null}
-          </>
-        ) : null}
+        <div className="flex flex-col items-end">
+          <span className="text-sm font-semibold text-sky-200">{priceLabel}</span>
+          {hasCostDelta ? (
+            <span
+              className={[
+                "text-[10px] font-semibold",
+                costDelta < 0 ? "text-emerald-300" : "text-amber-300"
+              ].join(" ")}
+            >
+              {costDelta < 0
+                ? `-${Math.abs(costDelta).toFixed(0)} THB`
+                : `+${costDelta.toFixed(0)} THB`}
+            </span>
+          ) : null}
+        </div>
       </div>
     );
   }

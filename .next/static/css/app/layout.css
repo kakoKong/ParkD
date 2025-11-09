@@ -762,6 +762,9 @@ video {
 .w-11 {
   width: 2.75rem;
 }
+.min-w-0 {
+  min-width: 0px;
+}
 .max-w-5xl {
   max-width: 64rem;
 }
@@ -1397,6 +1400,14 @@ video {
 .text-emerald-200 {
   --tw-text-opacity: 1;
   color: rgb(167 243 208 / var(--tw-text-opacity));
+}
+.text-amber-300 {
+  --tw-text-opacity: 1;
+  color: rgb(252 211 77 / var(--tw-text-opacity));
+}
+.text-emerald-300 {
+  --tw-text-opacity: 1;
+  color: rgb(110 231 183 / var(--tw-text-opacity));
 }
 .opacity-80 {
   opacity: 0.8;
