@@ -9,6 +9,7 @@ interface SelectedLotDetailsProps {
   variant?: "default" | "compact";
   onOpenDetail?: () => void;
   language?: "en" | "th";
+  collapsed?: boolean;
 }
 
 function formatMinutes(minutes: number, language: "en" | "th") {
@@ -31,7 +32,8 @@ export function SelectedLotDetails({
   distanceKm: _distanceKm,
   variant = "default",
   onOpenDetail,
-  language = "en"
+  language = "en",
+  collapsed = false
 }: SelectedLotDetailsProps) {
   const isThai = language === "th";
 
@@ -58,12 +60,37 @@ export function SelectedLotDetails({
   const topTier = lot.tiers[0];
 
   if (variant === "compact") {
+    const handleContainerClick = onOpenDetail
+      ? () => {
+          onOpenDetail();
+        }
+      : undefined;
+
+    const handleContainerKeyDown = onOpenDetail
+      ? (event: React.KeyboardEvent<HTMLDivElement>) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            onOpenDetail();
+          }
+        }
+      : undefined;
+
     return (
-      <div className="flex flex-col gap-4 rounded-2xl border border-slate-800/70 bg-slate-950/75 px-4 py-5 text-xs text-slate-100 shadow-lg shadow-slate-950/50">
+      <div
+        className={[
+          "flex flex-col gap-4 rounded-2xl border border-slate-800/70 bg-slate-950/75 px-4 py-5 text-xs text-slate-100 shadow-lg shadow-slate-950/50 transition",
+          onOpenDetail ? "cursor-pointer hover:border-slate-600 hover:bg-slate-900/80" : ""
+        ].join(" ")}
+        onClick={handleContainerClick}
+        onKeyDown={handleContainerKeyDown}
+        role={onOpenDetail ? "button" : undefined}
+        tabIndex={onOpenDetail ? 0 : undefined}
+        aria-label={onOpenDetail ? (isThai ? "ดูรายละเอียดที่จอดรถ" : "View parking details") : undefined}
+      >
         <div className="flex items-start justify-between gap-2">
           <div className="space-y-1">
             <h3 className="text-sm font-semibold text-slate-100">{lot.name}</h3>
-            <p className="text-[11px] text-slate-400">{lot.address}</p>
+            {!collapsed ? <p className="text-[11px] text-slate-400">{lot.address}</p> : null}
           </div>
           <div className="flex flex-col items-end gap-1">
             {pricing ? (
@@ -82,52 +109,52 @@ export function SelectedLotDetails({
           </div>
         </div>
 
-        <div className="flex items-center justify-between rounded-xl border border-slate-800/70 bg-slate-950/70 px-3 py-2 text-[11px] text-slate-300">
-          <span>{isThai ? "เวลาจอดฟรี" : "Free allowance"}</span>
-          <span className="font-semibold text-slate-100">
-            {formatMinutes(lot.freeMinutes, language)}
-          </span>
-        </div>
-
-        {pricing ? (
-          <div className="flex items-center justify-between rounded-xl border border-slate-800/70 bg-slate-950/70 px-3 py-2 text-[11px] text-slate-300">
-            <span>{isThai ? "หลังเวลาฟรี" : "After free time"}</span>
-            <span className="font-semibold text-slate-100">
-              {pricing.hourlyRateAfterFree.toFixed(0)} {isThai ? "บาท/ชม." : "THB/hr"}
-            </span>
-          </div>
-        ) : null}
-
-        {lot.discounts.length ? (
-          <div className="flex flex-wrap gap-1.5">
-            {lot.discounts.slice(0, 2).map((discount) => (
-              <span
-                key={discount.id}
-                className="rounded-full bg-slate-900/70 px-3 py-1 text-[10px] text-slate-300"
-              >
-                {isThai
-                  ? `+${formatMinutes(discount.additionalFreeMinutes, language)} พร้อม ${discount.type}`
-                  : `+${formatMinutes(discount.additionalFreeMinutes, language)} with ${discount.type}`}
+        {!collapsed ? (
+          <>
+            <div className="flex items-center justify-between rounded-xl border border-slate-800/70 bg-slate-950/70 px-3 py-2 text-[11px] text-slate-300">
+              <span>{isThai ? "เวลาจอดฟรี" : "Free allowance"}</span>
+              <span className="font-semibold text-slate-100">
+                {formatMinutes(lot.freeMinutes, language)}
               </span>
-            ))}
-            {lot.discounts.length > 2 ? (
-              <span className="rounded-full bg-slate-900/70 px-3 py-1 text-[10px] text-slate-500">
-                {isThai
-                  ? `+${lot.discounts.length - 2} เพิ่มเติม`
-                  : `+${lot.discounts.length - 2} more`}
-              </span>
+            </div>
+
+            {pricing ? (
+              <div className="flex items-center justify-between rounded-xl border border-slate-800/70 bg-slate-950/70 px-3 py-2 text-[11px] text-slate-300">
+                <span>{isThai ? "หลังเวลาฟรี" : "After free time"}</span>
+                <span className="font-semibold text-slate-100">
+                  {pricing.hourlyRateAfterFree.toFixed(0)} {isThai ? "บาท/ชม." : "THB/hr"}
+                </span>
+              </div>
             ) : null}
-          </div>
-        ) : null}
 
-        {onOpenDetail ? (
-          <button
-            type="button"
-            onClick={onOpenDetail}
-            className="mt-1 inline-flex w-full items-center justify-center gap-2 rounded-full border border-slate-700/70 bg-slate-900/70 px-4 py-2 text-[11px] font-semibold text-slate-200 transition hover:border-slate-500 hover:bg-slate-900"
-          >
-            {isThai ? "ดูรายละเอียดทั้งหมด" : "View full details"}
-          </button>
+            {lot.discounts.length ? (
+              <div className="flex flex-wrap gap-1.5">
+                {lot.discounts.slice(0, 2).map((discount) => (
+                  <span
+                    key={discount.id}
+                    className="rounded-full bg-slate-900/70 px-3 py-1 text-[10px] text-slate-300"
+                  >
+                    {isThai
+                      ? `+${formatMinutes(discount.additionalFreeMinutes, language)} พร้อม ${discount.type}`
+                      : `+${formatMinutes(discount.additionalFreeMinutes, language)} with ${discount.type}`}
+                  </span>
+                ))}
+                {lot.discounts.length > 2 ? (
+                  <span className="rounded-full bg-slate-900/70 px-3 py-1 text-[10px] text-slate-500">
+                    {isThai
+                      ? `+${lot.discounts.length - 2} เพิ่มเติม`
+                      : `+${lot.discounts.length - 2} more`}
+                  </span>
+                ) : null}
+              </div>
+            ) : null}
+
+            {onOpenDetail ? (
+              <div className="mt-1 text-center text-[10px] uppercase tracking-[0.2em] text-slate-500">
+                {isThai ? "แตะเพื่อดูรายละเอียดทั้งหมด" : "Tap for full details"}
+              </div>
+            ) : null}
+          </>
         ) : null}
       </div>
     );

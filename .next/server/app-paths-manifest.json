@@ -1,3 +1,6 @@
 {
-  "/page": "app/page.js"
+  "/_not-found/page": "app/_not-found/page.js",
+  "/page": "app/page.js",
+  "/api/parking/lots/route": "app/api/parking/lots/route.js",
+  "/api/parking/recommend/route": "app/api/parking/recommend/route.js"
 }

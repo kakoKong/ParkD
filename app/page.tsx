@@ -275,7 +275,7 @@ export default function HomePage() {
   }));
   const [useViewportOrigin, setUseViewportOrigin] = useState(false);
   const shouldSnapToSelectionRef = useRef(false);
-  const [isSearchCollapsed, setIsSearchCollapsed] = useState(false);
+  const [isSearchCollapsed, setIsSearchCollapsed] = useState(true);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isNavOpen, setIsNavOpen] = useState(false);
   const [language, setLanguage] = useState<PageLanguage>("th");
@@ -658,7 +658,7 @@ export default function HomePage() {
       </button>
 
       <div className="pointer-events-none absolute inset-x-0 bottom-0 px-4 pb-6">
-        <div className="pointer-events-auto mx-auto flex w-full max-w-md flex-col gap-4">
+        <div className="pointer-events-auto mx-auto flex w-full max-w-md flex-col gap-3 max-h-[50vh] overflow-hidden">
           <div className="rounded-3xl border border-slate-800/60 bg-slate-950/85 px-5 py-4 shadow-xl shadow-slate-950/60 backdrop-blur">
             <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.28em] text-slate-400">
               <span>{copy.searchPanel.title}</span>
@@ -674,24 +674,33 @@ export default function HomePage() {
                 </span>
               </button>
             </div>
-            <div className="mt-2 text-[10px] text-slate-500">
-              {isLocating && !userLocation ? copy.searchPanel.locating : null}
-              {locationError ? locationError : null}
-            </div>
-            <div className="mt-4 space-y-4">
+            {!isSearchCollapsed ? (
+              <div className="mt-2 text-[10px] text-slate-500">
+                {isLocating && !userLocation ? copy.searchPanel.locating : null}
+                {locationError ? locationError : null}
+              </div>
+            ) : null}
+            <div className="mt-3 space-y-4">
               <div
                 className={`space-y-2 text-[11px] text-slate-400 ${
                   isSearchCollapsed ? "block" : "hidden"
                 }`}
               >
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded-full bg-slate-900/70 px-3 py-1 text-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setIsSearchCollapsed(false)}
+                  className="inline-flex w-full items-center justify-between rounded-full bg-slate-900/70 px-4 py-2 text-[11px] font-semibold text-slate-200 transition hover:bg-slate-800"
+                >
+                  <span className="rounded-full bg-slate-900/60 px-3 py-1 text-slate-200">
                     {useViewportOrigin ? copy.searchPanel.originMap : copy.searchPanel.originUser}
                   </span>
-                  <span className="rounded-full bg-slate-900/50 px-3 py-1 text-slate-300">
+                  <span className="flex-1 truncate px-3 text-right text-slate-300">
                     {searchSummaryLabel}
                   </span>
-                </div>
+                  <span className="rounded-full bg-sky-500/90 px-3 py-1 text-slate-950">
+                    {copy.searchPanel.adjust}
+                  </span>
+                </button>
                 {isLoadingLots ? (
                   <p className="text-[10px] text-slate-500">{copy.searchPanel.refreshing}</p>
                 ) : null}
@@ -700,13 +709,6 @@ export default function HomePage() {
                     {lotsError}
                   </p>
                 ) : null}
-                <button
-                  type="button"
-                  onClick={() => setIsSearchCollapsed(false)}
-                  className="inline-flex items-center gap-2 rounded-full bg-sky-500/90 px-4 py-2 text-[11px] font-semibold text-slate-950 transition hover:bg-sky-400"
-                >
-                  {copy.searchPanel.adjust}
-                </button>
               </div>
 
               <div className={isSearchCollapsed ? "hidden" : "space-y-4"} aria-hidden={isSearchCollapsed}>
@@ -737,6 +739,7 @@ export default function HomePage() {
             pricing={activeEntry?.result}
             distanceKm={activeEntry?.distanceKm}
             variant="compact"
+            collapsed={isSearchCollapsed}
             onOpenDetail={activeEntry ? openDetailModal : undefined}
             language={language}
           />
@@ -766,40 +769,47 @@ export default function HomePage() {
       </div>
 
       {isDetailModalOpen && activeEntry ? (
-        <div className="pointer-events-auto fixed inset-0 z-40 flex flex-col justify-end sm:items-center sm:justify-center">
+        <div className="pointer-events-auto fixed inset-0 z-40 flex items-end justify-center p-4 sm:items-center sm:p-10">
           <div
             className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
             onClick={closeDetailModal}
           />
           <div
-            className="relative z-10 w-full max-w-lg translate-y-0 rounded-t-3xl border border-slate-800/70 bg-slate-950/95 px-5 pb-6 pt-6 shadow-2xl shadow-slate-950/60 sm:rounded-3xl sm:p-8"
+            className="relative z-10 flex w-full max-w-md flex-col overflow-hidden rounded-3xl border border-slate-800/60 bg-slate-950/90 shadow-[0_18px_56px_-18px_rgba(15,23,42,0.85)] transition max-h-[90vh] sm:max-w-lg"
             onClick={(event) => event.stopPropagation()}
           >
-            <button
-              type="button"
-              onClick={closeDetailModal}
-              className="absolute right-5 top-5 inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-700/60 bg-slate-900/70 text-lg font-semibold text-slate-300 transition hover:border-slate-500 hover:text-slate-100"
-              aria-label="Close parking details"
-            >
-              ×
-            </button>
-            <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.28em] text-slate-500">
-              {copy.detailModal.title}
-            </h2>
-            <SelectedLotDetails
-              lot={activeEntry.lot}
-              pricing={activeEntry.result}
-              distanceKm={activeEntry.distanceKm}
-              variant="default"
-              language={language}
-            />
-            <button
-              type="button"
-              onClick={closeDetailModal}
-              className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-sky-500/90 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-sky-400"
-            >
-              {copy.detailModal.done}
-            </button>
+            <header className="relative flex items-center justify-between px-6 pb-0 pt-6 sm:px-8 sm:pt-8">
+              <div className="flex items-center gap-3 rounded-full border border-slate-800/70 bg-slate-900/60 px-4 py-2 text-[11px] uppercase tracking-[0.3em] text-slate-400">
+                <span className="inline-flex h-2 w-2 rounded-full bg-sky-400" />
+                <span>{copy.detailModal.title}</span>
+              </div>
+              <button
+                type="button"
+                onClick={closeDetailModal}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-900/70 text-lg font-semibold text-slate-300 transition hover:bg-slate-800 hover:text-slate-100"
+                aria-label="Close parking details"
+              >
+                ×
+              </button>
+            </header>
+            <div className="flex flex-1 flex-col gap-5 overflow-y-auto px-6 pb-6 overscroll-contain sm:gap-6 sm:overflow-visible sm:px-8 sm:pb-8">
+              <div className="rounded-2xl border border-slate-800/70 bg-slate-950">
+                <SelectedLotDetails
+                  lot={activeEntry.lot}
+                  pricing={activeEntry.result}
+                  distanceKm={activeEntry.distanceKm}
+                  variant="default"
+                  language={language}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={closeDetailModal}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-sky-500/90 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-sky-400"
+              >
+                {copy.detailModal.done}
+              </button>
+            </div>
           </div>
         </div>
       ) : null}
