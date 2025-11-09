@@ -145,7 +145,7 @@ const MapViewComponent = forwardRef<MapViewRef, MapViewProps>(
                 right: 40
               },
               maxZoom: 15,
-              duration: 900
+              duration: 350
             });
           } catch (error) {
             console.error("Error zooming to zone:", error);
@@ -161,7 +161,7 @@ const MapViewComponent = forwardRef<MapViewRef, MapViewProps>(
             map.flyTo({
               center: [lng, lat],
               zoom: 16,
-              duration: 900,
+              duration: 350,
               offset: [0, verticalOffset]
             });
           } catch (error) {
@@ -175,7 +175,7 @@ const MapViewComponent = forwardRef<MapViewRef, MapViewProps>(
           map.flyTo({
             center: [lng, lat],
             zoom: 14,
-            duration: 800,
+            duration: 320,
             offset: [0, verticalOffset]
           });
         }
@@ -462,7 +462,7 @@ const MapViewComponent = forwardRef<MapViewRef, MapViewProps>(
         map.easeTo({
           center: [userLocation.longitude, userLocation.latitude],
           zoom: targetZoom,
-          duration: 800,
+          duration: 300,
           offset: [0, verticalOffset]
         });
       }

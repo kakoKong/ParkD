@@ -1020,6 +1020,12 @@ video {
 .border-sky-500\/70 {
   border-color: rgb(14 165 233 / 0.7);
 }
+.border-amber-500\/40 {
+  border-color: rgb(245 158 11 / 0.4);
+}
+.border-emerald-500\/40 {
+  border-color: rgb(16 185 129 / 0.4);
+}
 .bg-primary {
   --tw-bg-opacity: 1;
   background-color: rgb(10 92 135 / var(--tw-bg-opacity));
@@ -1115,6 +1121,12 @@ video {
 }
 .bg-slate-950\/90 {
   background-color: rgb(2 6 23 / 0.9);
+}
+.bg-amber-500\/10 {
+  background-color: rgb(245 158 11 / 0.1);
+}
+.bg-emerald-500\/10 {
+  background-color: rgb(16 185 129 / 0.1);
 }
 .bg-gradient-to-b {
   background-image: linear-gradient(to bottom, var(--tw-gradient-stops));
@@ -1377,6 +1389,14 @@ video {
 .text-sky-100 {
   --tw-text-opacity: 1;
   color: rgb(224 242 254 / var(--tw-text-opacity));
+}
+.text-amber-200 {
+  --tw-text-opacity: 1;
+  color: rgb(253 230 138 / var(--tw-text-opacity));
+}
+.text-emerald-200 {
+  --tw-text-opacity: 1;
+  color: rgb(167 243 208 / var(--tw-text-opacity));
 }
 .opacity-80 {
   opacity: 0.8;
@@ -1680,6 +1700,10 @@ button {
 
   .sm\:grid-cols-3 {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .sm\:grid-cols-\[minmax\(0\2c 2fr\)\2c minmax\(0\2c 3fr\)\] {
+    grid-template-columns: minmax(0,2fr) minmax(0,3fr);
   }
 
   .sm\:flex-row {

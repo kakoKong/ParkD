@@ -1,6 +1,9 @@
 "use client";
 
-import type { ParkingLot, PricingBreakdown } from "@/types/parking";
+import { useEffect, useMemo, useState } from "react";
+
+import { calculatePricing } from "@/lib/pricing";
+import type { DiscountQualifier, ParkingLot, PricingBreakdown } from "@/types/parking";
 
 interface SelectedLotDetailsProps {
   lot?: ParkingLot | null;
@@ -37,6 +40,92 @@ export function SelectedLotDetails({
 }: SelectedLotDetailsProps) {
   const isThai = language === "th";
 
+  const qualifierOptions = useMemo(
+    () => [
+      { value: "movie" as const, label: isThai ? "ดูภาพยนตร์" : "Movie ticket" },
+      { value: "dining" as const, label: isThai ? "รับประทานอาหาร" : "Dining receipt" },
+      { value: "grocery" as const, label: isThai ? "ซูเปอร์มาร์เก็ต" : "Grocery loyalty" },
+      { value: "membership" as const, label: isThai ? "สมาชิกโครงการ" : "Membership" }
+    ],
+    [isThai]
+  );
+
+  const [spendInput, setSpendInput] = useState<string>("");
+  const [selectedQualifiers, setSelectedQualifiers] = useState<DiscountQualifier[]>([]);
+
+  useEffect(() => {
+    if (!lot) {
+      setSpendInput("");
+      setSelectedQualifiers([]);
+      return;
+    }
+
+    setSpendInput("");
+
+    if (pricing?.discountsApplied?.length) {
+      const inferred = pricing.discountsApplied
+        .map((discount) => discount.qualifier)
+        .filter((qualifier): qualifier is DiscountQualifier => Boolean(qualifier));
+      setSelectedQualifiers(Array.from(new Set(inferred)));
+    } else {
+      setSelectedQualifiers([]);
+    }
+  }, [lot?.id, pricing?.lotId]);
+
+  const spendAmount = useMemo(() => {
+    if (spendInput.trim() === "") return 0;
+    const numeric = Number(spendInput);
+    if (!Number.isFinite(numeric) || numeric < 0) return 0;
+    return numeric;
+  }, [spendInput]);
+
+  const baseDurationMinutes = pricing?.baseMinutesCharged ?? 0;
+
+  const effectivePricing = useMemo(() => {
+    if (!lot || !pricing) {
+      return pricing ?? null;
+    }
+
+    try {
+      return calculatePricing({
+        lot,
+        durationMinutes: baseDurationMinutes,
+        spendAmount,
+        qualifiers: selectedQualifiers
+      });
+    } catch (error) {
+      console.error("Unable to calculate adjusted pricing", error);
+      return pricing;
+    }
+  }, [lot, pricing, baseDurationMinutes, spendAmount, selectedQualifiers]);
+
+  const displayPricing = effectivePricing ?? pricing ?? null;
+  const hasAdjustments = spendAmount > 0 || selectedQualifiers.length > 0;
+  const costDelta = displayPricing && pricing ? displayPricing.totalCost - pricing.totalCost : 0;
+  const hasCostDelta = Math.abs(costDelta) >= 0.01;
+
+  const appliedDiscountIds = useMemo(() => {
+    if (!displayPricing?.discountsApplied) return new Set<string>();
+    return new Set(displayPricing.discountsApplied.map((discount) => discount.id));
+  }, [displayPricing?.discountsApplied]);
+
+  function handleSpendChange(value: string) {
+    if (value === "") {
+      setSpendInput("");
+      return;
+    }
+
+    const numeric = Number(value);
+    if (Number.isNaN(numeric) || numeric < 0) return;
+    setSpendInput(value);
+  }
+
+  function toggleQualifier(next: DiscountQualifier) {
+    setSelectedQualifiers((prev) =>
+      prev.includes(next) ? prev.filter((item) => item !== next) : [...prev, next]
+    );
+  }
+
   if (!lot) {
     if (variant === "compact") {
       return (
@@ -58,6 +147,9 @@ export function SelectedLotDetails({
   }
 
   const topTier = lot.tiers[0];
+  const resolvedFreeMinutes = displayPricing?.effectiveFreeMinutes ?? lot.freeMinutes ?? 0;
+  const firstTierRemaining =
+    topTier?.toMinute !== undefined ? Math.max(topTier.toMinute - resolvedFreeMinutes, 0) : null;
 
   if (variant === "compact") {
     const handleContainerClick = onOpenDetail
@@ -90,16 +182,16 @@ export function SelectedLotDetails({
         <div className="flex items-start justify-between gap-2">
           <div className="space-y-1">
             <h3 className="text-sm font-semibold text-slate-100">{lot.name}</h3>
-            {!collapsed ? <p className="text-[11px] text-slate-400">{lot.address}</p> : null}
+          {!collapsed ? <p className="text-[11px] text-slate-400">{lot.address}</p> : null}
           </div>
           <div className="flex flex-col items-end gap-1">
-            {pricing ? (
+            {displayPricing ? (
               <span className="text-sm font-semibold text-sky-200">
-                {pricing.totalCost <= 0
+                {displayPricing.totalCost <= 0
                   ? isThai
                     ? "ฟรี"
                     : "Free"
-                  : `${pricing.totalCost.toFixed(0)} THB`}
+                  : `${displayPricing.totalCost.toFixed(0)} THB`}
               </span>
             ) : (
               <span className="text-[11px] text-slate-500">
@@ -114,15 +206,15 @@ export function SelectedLotDetails({
             <div className="flex items-center justify-between rounded-xl border border-slate-800/70 bg-slate-950/70 px-3 py-2 text-[11px] text-slate-300">
               <span>{isThai ? "เวลาจอดฟรี" : "Free allowance"}</span>
               <span className="font-semibold text-slate-100">
-                {formatMinutes(lot.freeMinutes, language)}
+                {formatMinutes(resolvedFreeMinutes, language)}
               </span>
             </div>
 
-            {pricing ? (
+            {displayPricing ? (
               <div className="flex items-center justify-between rounded-xl border border-slate-800/70 bg-slate-950/70 px-3 py-2 text-[11px] text-slate-300">
                 <span>{isThai ? "หลังเวลาฟรี" : "After free time"}</span>
                 <span className="font-semibold text-slate-100">
-                  {pricing.hourlyRateAfterFree.toFixed(0)} {isThai ? "บาท/ชม." : "THB/hr"}
+                  {displayPricing.hourlyRateAfterFree.toFixed(0)} {isThai ? "บาท/ชม." : "THB/hr"}
                 </span>
               </div>
             ) : null}
@@ -169,7 +261,7 @@ export function SelectedLotDetails({
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <span className="rounded-full border border-slate-700/70 bg-slate-900/70 px-3 py-1 text-[11px] text-slate-400">
-          {pricing
+          {displayPricing
             ? isThai
               ? "ประเมินแล้ว"
               : "Estimated"
@@ -177,35 +269,126 @@ export function SelectedLotDetails({
             ? "รอดำเนินการ"
             : "Awaiting"}
           </span>
-          {pricing ? (
+          {displayPricing ? (
             <span className="rounded-full bg-sky-500/20 px-3 py-1 text-sm font-semibold text-sky-200">
-            {pricing.totalCost <= 0
+            {displayPricing.totalCost <= 0
               ? isThai
                 ? "ฟรี"
                 : "Free"
-              : `${pricing.totalCost.toFixed(2)} THB`}
+              : `${displayPricing.totalCost.toFixed(2)} THB`}
             </span>
           ) : null}
         </div>
       </div>
 
       {pricing ? (
+        <div className="space-y-4 rounded-2xl border border-slate-800 bg-slate-950/80 p-4 text-sm text-slate-200">
+          <div className="flex flex-col gap-1">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">
+              {isThai ? "อัปเดตสิทธิ์รับเวลาจอดฟรี" : "Adjust parking perks"}
+            </span>
+            <p className="text-xs text-slate-400">
+              {isThai
+                ? "ลองกรอกยอดใช้จ่ายหรือเลือกสิทธิ์ที่ใช้ได้เพื่อดูผลลัพธ์ใหม่ทันที"
+                : "Enter how much you plan to spend or which perks you can claim to refresh the estimate."}
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <div>
+              <label className="text-[11px] uppercase tracking-[0.28em] text-slate-500">
+                {isThai ? "ยอดใช้จ่ายของคุณ" : "Your spend amount"}
+              </label>
+              <div className="mt-2 flex items-baseline gap-3 rounded-xl border border-slate-800/70 bg-slate-950/70 px-3 py-2">
+                <span className="text-sm font-semibold text-sky-200">{isThai ? "บาท" : "THB"}</span>
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={spendInput}
+                  onChange={(event) => handleSpendChange(event.target.value)}
+                  placeholder="0"
+                  className="w-full bg-transparent text-lg font-semibold text-slate-100 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div>
+              <span className="text-[11px] uppercase tracking-[0.28em] text-slate-500">
+                {isThai ? "สิทธิ์ที่คุณมี" : "Perks you expect to use"}
+              </span>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {qualifierOptions.map((option) => {
+                  const isActive = selectedQualifiers.includes(option.value);
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => toggleQualifier(option.value)}
+                      className={[
+                        "rounded-full border px-3 py-1 text-xs font-medium transition",
+                        isActive
+                          ? "border-sky-400 bg-sky-500/20 text-sky-100"
+                          : "border-slate-700 bg-slate-900/70 text-slate-300 hover:border-slate-500 hover:bg-slate-900"
+                      ].join(" ")}
+                      aria-pressed={isActive}
+                    >
+                      {option.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {hasCostDelta ? (
+              <div
+                className={[
+                  "rounded-xl border px-3 py-2 text-xs",
+                  costDelta < 0
+                    ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-200"
+                    : "border-amber-500/40 bg-amber-500/10 text-amber-200"
+                ].join(" ")}
+              >
+                {costDelta < 0
+                  ? isThai
+                    ? `ประหยัดเพิ่ม ${Math.abs(costDelta).toFixed(2)} บาท จากสิทธิ์ที่เลือก`
+                    : `You save an extra ${Math.abs(costDelta).toFixed(2)} THB with these perks.`
+                  : isThai
+                  ? `ค่าใช้จ่ายเพิ่ม ${costDelta.toFixed(2)} บาท จากค่าจอดที่คำนวณ`
+                  : `Your estimate increases by ${costDelta.toFixed(2)} THB with the current inputs.`}
+              </div>
+            ) : (
+              <p className="text-[11px] text-slate-500">
+                {isThai
+                  ? hasAdjustments
+                    ? "ยังไม่มีการเปลี่ยนแปลง ลองปรับยอดใช้จ่ายหรือสิทธิ์เพิ่มเติม"
+                    : "เริ่มกรอกยอดใช้จ่ายหรือเลือกสิทธิ์เพื่อดูผลลัพธ์ใหม่"
+                  : hasAdjustments
+                  ? "No change yet—try adjusting the amount or perks differently."
+                  : "Enter an amount or toggle a perk to see how the total changes."}
+              </p>
+            )}
+          </div>
+        </div>
+      ) : null}
+
+      {displayPricing ? (
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-xl border border-slate-800 bg-slate-950/80 p-4 text-sm text-slate-200">
           <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">
             {isThai ? "ค่าจอดรวม" : "Total cost"}
           </p>
             <p className="mt-2 text-xl font-semibold text-slate-100">
-            {pricing.totalCost <= 0
+            {displayPricing.totalCost <= 0
               ? isThai
                 ? "ฟรี"
                 : "Free"
-              : `${pricing.totalCost.toFixed(2)} THB`}
+              : `${displayPricing.totalCost.toFixed(2)} THB`}
             </p>
           <p className="mt-1 text-xs text-slate-400">
             {isThai
-              ? "รวมสิทธิ์และการใช้จ่ายที่คุณระบุแล้ว"
-              : "Includes your planned perks and spend."}
+              ? "รวมเวลาฟรีและสิทธิ์พิเศษที่มีให้ในพื้นที่"
+              : "Includes free allowances and available perks for this site."}
           </p>
           </div>
           <div className="rounded-xl border border-slate-800 bg-slate-950/80 p-4 text-sm text-slate-200">
@@ -213,7 +396,7 @@ export function SelectedLotDetails({
             {isThai ? "หลังเวลาฟรี" : "After free time"}
           </p>
             <p className="mt-2 text-xl font-semibold text-slate-100">
-            {pricing.hourlyRateAfterFree.toFixed(2)} {isThai ? "บาท/ชม." : "THB/hr"}
+            {displayPricing.hourlyRateAfterFree.toFixed(2)} {isThai ? "บาท/ชม." : "THB/hr"}
             </p>
           <p className="mt-1 text-xs text-slate-400">
             {isThai
@@ -230,7 +413,7 @@ export function SelectedLotDetails({
           {isThai ? "เวลาจอดฟรี" : "Free allowance"}
         </dt>
         <dd className="mt-2 text-sm font-semibold text-slate-100">
-          {formatMinutes(lot.freeMinutes, language)}
+          {formatMinutes(resolvedFreeMinutes, language)}
         </dd>
         </div>
         {topTier ? (
@@ -240,10 +423,10 @@ export function SelectedLotDetails({
           </dt>
             <dd className="mt-2 text-sm font-semibold text-slate-100">
             {`${topTier.ratePerHour} ${isThai ? "บาท/ชม." : "THB/hr"}`}
-            {topTier.toMinute
+            {firstTierRemaining && firstTierRemaining > 0
               ? isThai
-                ? ` สูงสุด ${formatMinutes(topTier.toMinute - lot.freeMinutes, language)}`
-                : ` up to ${formatMinutes(topTier.toMinute - lot.freeMinutes, language)}`
+                ? ` สูงสุด ${formatMinutes(firstTierRemaining, language)}`
+                : ` up to ${formatMinutes(firstTierRemaining, language)}`
               : ""}
             </dd>
           </div>
@@ -282,7 +465,15 @@ export function SelectedLotDetails({
         </p>
           <ul className="space-y-2">
             {lot.discounts.map((discount) => (
-              <li key={discount.id} className="flex flex-col gap-1 rounded-lg bg-slate-950/70 px-3 py-2">
+              <li
+                key={discount.id}
+                className={[
+                  "flex flex-col gap-1 rounded-lg px-3 py-2 transition",
+                  appliedDiscountIds.has(discount.id)
+                    ? "border border-sky-500/50 bg-sky-500/10 text-sky-100"
+                    : "bg-slate-950/70 text-slate-300"
+                ].join(" ")}
+              >
                 <span className="text-[11px] font-semibold uppercase text-slate-400">{discount.type}</span>
                 <span className="text-slate-100">{discount.description}</span>
                 <span className="text-[11px] text-slate-500">

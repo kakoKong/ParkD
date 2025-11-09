@@ -197,19 +197,6 @@ const PAGE_COPY: Record<PageLanguage, PageCopy> = {
 
 const DEFAULT_DURATION_MINUTES = 120;
 
-const QUALIFIER_LABELS: Record<PageLanguage, Record<string, string>> = {
-  en: {
-    movie: "Movie ticket",
-    dining: "Dining receipt",
-    grocery: "Grocery loyalty"
-  },
-  th: {
-    movie: "ตั๋วหนัง",
-    dining: "ใบเสร็จร้านอาหาร",
-    grocery: "สะสมแต้มซูเปอร์มาร์เก็ต"
-  }
-};
-
 function formatDurationSummary(minutes: number, language: PageLanguage) {
   if (minutes <= 0) {
     return language === "th" ? "ตั้งค่าระยะเวลา" : "Set duration";
@@ -275,14 +262,12 @@ export default function HomePage() {
   }));
   const [useViewportOrigin, setUseViewportOrigin] = useState(false);
   const shouldSnapToSelectionRef = useRef(false);
-  const [isSearchCollapsed, setIsSearchCollapsed] = useState(true);
+  const [isSearchCollapsed, setIsSearchCollapsed] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isNavOpen, setIsNavOpen] = useState(false);
   const [language, setLanguage] = useState<PageLanguage>("th");
   const [searchConfig, setSearchConfig] = useState<ParkingSearchConfig>({
-    durationMinutes: DEFAULT_DURATION_MINUTES,
-    spend: 0,
-    qualifiers: []
+    durationMinutes: DEFAULT_DURATION_MINUTES
   });
   const isProgrammaticPanRef = useRef(false);
   const copy = PAGE_COPY[language];
@@ -391,7 +376,7 @@ export default function HomePage() {
       .filter((entry): entry is RankedResult => entry !== null)
       .filter((entry) => {
         if (entry.distanceKm == null) return true;
-        return entry.distanceKm <= 10;
+        return entry.distanceKm <= 5;
       })
       .sort((a, b) => {
         if (a.distanceKm == null && b.distanceKm == null) return 0;
@@ -593,23 +578,7 @@ export default function HomePage() {
     ? copy.status.ready
     : copy.status.browse;
 
-  const spendLabel =
-    language === "th"
-      ? `${searchConfig.spend.toLocaleString("th-TH")} บาท`
-      : `${searchConfig.spend.toLocaleString("en-US")} THB`;
-  const configSummaryParts = [
-    formatDurationSummary(searchConfig.durationMinutes, language),
-    spendLabel
-  ];
-  if (searchConfig.qualifiers.length) {
-    const qualifierSummary = searchConfig.qualifiers
-      .map((qualifier) => QUALIFIER_LABELS[language][qualifier] ?? qualifier)
-      .join(", ");
-    if (qualifierSummary) {
-      configSummaryParts.push(qualifierSummary);
-    }
-  }
-  const searchSummaryLabel = configSummaryParts.join(" · ");
+  const searchSummaryLabel = formatDurationSummary(searchConfig.durationMinutes, language);
 
   return (
     <div className="relative h-dvh w-full overflow-hidden bg-slate-950 text-slate-100">
@@ -739,7 +708,7 @@ export default function HomePage() {
             pricing={activeEntry?.result}
             distanceKm={activeEntry?.distanceKm}
             variant="compact"
-            collapsed={isSearchCollapsed}
+            collapsed={!isSearchCollapsed}
             onOpenDetail={activeEntry ? openDetailModal : undefined}
             language={language}
           />

@@ -3,17 +3,13 @@ import { z } from "zod";
 
 import { calculatePricing } from "@/lib/pricing";
 import { createServerClient } from "@/lib/supabase/server";
-import type { RecommendationResponse, DiscountQualifier } from "@/types/parking";
-
-const qualifierEnum = z.enum(["movie", "dining", "grocery", "membership", "other"]);
+import type { RecommendationResponse } from "@/types/parking";
 
 const bodySchema = z.object({
   durationMinutes: z
     .number({ required_error: "durationMinutes is required" })
     .int()
-    .positive(),
-  spendAmount: z.number().nonnegative().optional(),
-  qualifiers: z.array(qualifierEnum).optional()
+    .positive()
 });
 
 export async function POST(request: Request) {
@@ -27,7 +23,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const { durationMinutes, spendAmount, qualifiers } = result.data;
+  const { durationMinutes } = result.data;
   const client = createServerClient();
   const { data: parkingLots, error } = await client.listParkingLots();
 
@@ -35,15 +31,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const qualifierInput = qualifiers ?? [];
-
   const recommendations = parkingLots
     .map((lot) =>
       calculatePricing({
         lot,
-        durationMinutes,
-        spendAmount,
-        qualifiers: qualifierInput as DiscountQualifier[]
+        durationMinutes
       })
     )
     .sort((a, b) => a.totalCost - b.totalCost);

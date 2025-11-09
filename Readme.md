@@ -1,6 +1,6 @@
 # ParkD
 
-ParkD is a mock Next.js + Supabase reference implementation that helps drivers discover the best parking options nearby. Users can enter their planned parking duration, spending, and validation perks. The app calculates estimated fees across lots, including free hours and discount policies, and highlights the cheapest options.
+ParkD is a mock Next.js + Supabase reference implementation that helps drivers discover the best parking options nearby. Users share how long they plan to stay, and the app calculates estimated fees across lots, including free hours and discount policies, and highlights the cheapest options.
 
 ## Stack
 
@@ -48,9 +48,7 @@ Request body:
 
 ```json
 {
-  "durationMinutes": 300,
-  "spendAmount": 900,
-  "qualifiers": ["movie"]
+  "durationMinutes": 300
 }
 ```
 

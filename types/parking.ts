@@ -50,8 +50,6 @@ export interface RecommendationRequest {
   latitude?: number;
   longitude?: number;
   durationMinutes: number;
-  spendAmount?: number;
-  qualifiers?: DiscountQualifier[];
 }
 
 export interface RecommendationResponse {
