@@ -472,7 +472,6 @@ export default function HomePage() {
     setResults(nextResults);
     setCurrentIndex(0);
     shouldSnapToSelectionRef.current = true;
-    setIsSearchCollapsed(true);
     setIsDetailModalOpen(false);
   }, []);
 
@@ -627,7 +626,7 @@ export default function HomePage() {
       </button>
 
       <div className="pointer-events-none absolute inset-x-0 bottom-0 px-4 pb-6">
-        <div className="pointer-events-auto mx-auto flex w-full max-w-md flex-col gap-3 max-h-[50vh] overflow-hidden">
+        <div className="pointer-events-auto mx-auto flex w-full flex-col gap-3 md:max-w-md lg:max-w-lg">
           <div className="rounded-3xl border border-slate-800/60 bg-slate-950/85 px-5 py-4 shadow-xl shadow-slate-950/60 backdrop-blur">
             <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.28em] text-slate-400">
               <span>{copy.searchPanel.title}</span>
@@ -684,7 +683,6 @@ export default function HomePage() {
                 <ParkingSearchForm
                   variant="compact"
                   onResults={handleResults}
-                  autoCollapseStayLength={hasResults}
                   language={language}
                   config={searchConfig}
                   onConfigChange={setSearchConfig}

@@ -207,6 +207,20 @@ export function SelectedLotDetails({
                 : `+${costDelta.toFixed(0)} THB`}
             </span>
           ) : null}
+          {onOpenDetail ? (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onOpenDetail();
+              }}
+              className="mt-1 inline-flex items-center gap-1 rounded-full border border-slate-700/70 px-2 py-0.5 text-[10px] font-semibold text-slate-200 transition hover:border-slate-500 hover:text-slate-100"
+              aria-label={isThai ? "ดูรายละเอียดเพิ่มเติมของที่จอดนี้" : "View more details for this parking lot"}
+            >
+              {isThai ? "รายละเอียด" : "Details"}
+              <span aria-hidden="true">→</span>
+            </button>
+          ) : null}
         </div>
       </div>
     );

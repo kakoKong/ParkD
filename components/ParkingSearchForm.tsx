@@ -10,7 +10,6 @@ export type ParkingSearchConfig = {
 interface ParkingSearchFormProps {
   onResults: (results: PricingBreakdown[]) => void;
   variant?: "default" | "compact";
-  autoCollapseStayLength?: boolean;
   language?: "en" | "th";
   config?: ParkingSearchConfig;
   onConfigChange?: (config: ParkingSearchConfig) => void;
@@ -42,7 +41,6 @@ function formatDuration(minutes: number, language: "en" | "th") {
 export function ParkingSearchForm({
   onResults,
   variant = "default",
-  autoCollapseStayLength = false,
   language = "en",
   config,
   onConfigChange
@@ -73,11 +71,9 @@ export function ParkingSearchForm({
   }, [baseDurations, config?.durationMinutes, defaultDuration]);
   const [durationMinutes, setDurationMinutes] = useState<number>(initialDuration);
   const isSyncingFromConfigRef = useRef(false);
-  const hasAutoCollapsedRef = useRef(false);
 
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-  const [showStayControls, setShowStayControls] = useState(true);
 
   useEffect(() => {
     if (!config) return;
@@ -165,63 +161,38 @@ export function ParkingSearchForm({
     };
   }, [durationMinutes, isThai, onResults]);
 
-  useEffect(() => {
-    if (autoCollapseStayLength) {
-      if (!hasAutoCollapsedRef.current) {
-        setShowStayControls(false);
-        hasAutoCollapsedRef.current = true;
-      }
-      return;
-    }
-    hasAutoCollapsedRef.current = false;
-    setShowStayControls(true);
-  }, [autoCollapseStayLength]);
-
   return (
     <div className="flex flex-col gap-4 text-xs text-slate-200">
       <div className="rounded-2xl border border-slate-800/70 bg-slate-950/75 px-4 py-3">
-        <button
-          type="button"
-          onClick={() => setShowStayControls((prev) => !prev)}
-          className="flex w-full items-center justify-between text-left text-slate-200"
-        >
+        <div className="flex w-full items-center justify-between text-left text-slate-200">
           <span className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">
             {isThai ? "ระยะเวลาจอด" : "Stay length"}
           </span>
           <span className="inline-flex items-center gap-2 text-[11px] text-slate-300">
             {formatDuration(durationMinutes, language)}
-            <span className="text-slate-500">{showStayControls ? "−" : "+"}</span>
           </span>
-        </button>
+        </div>
 
-        {showStayControls ? (
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {durationOptions.map((option) => {
-              const isActive = activePresetMinutes === option.minutes;
-              return (
-                <button
-                  key={option.minutes}
-                  type="button"
-                  onClick={() => selectPreset(option.minutes)}
-                  className={[
-                    "rounded-full px-3 py-1 text-[11px] font-medium transition",
-                    isActive
-                      ? "bg-sky-500/90 text-slate-950"
-                      : "bg-slate-900/80 text-slate-200 hover:bg-slate-800"
-                  ].join(" ")}
-                >
-                  {option.label}
-                </button>
-              );
-            })}
-          </div>
-        ) : (
-          <p className="mt-3 text-[11px] text-slate-400">
-            {isThai
-              ? `${formatDuration(durationMinutes, language)} ทั้งหมด แตะเพื่อปรับ`
-              : `${formatDuration(durationMinutes, language)} total. Tap to adjust.`}
-          </p>
-        )}
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {durationOptions.map((option) => {
+            const isActive = activePresetMinutes === option.minutes;
+            return (
+              <button
+                key={option.minutes}
+                type="button"
+                onClick={() => selectPreset(option.minutes)}
+                className={[
+                  "rounded-full px-3 py-1 text-[11px] font-medium transition",
+                  isActive
+                    ? "bg-sky-500/90 text-slate-950"
+                    : "bg-slate-900/80 text-slate-200 hover:bg-slate-800"
+                ].join(" ")}
+              >
+                {option.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {error ? (
